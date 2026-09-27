@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+venv/
+data/mitbih/
+*.pkl
+*.pt
+mlruns/
+.dvc/cache/
+drift_report.html
+.vscode/
