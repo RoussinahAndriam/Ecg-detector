@@ -9,3 +9,5 @@ mlruns/
 .dvc/cache/
 drift_report.html
 .vscode/
+# Monitoring reports
+reports/
