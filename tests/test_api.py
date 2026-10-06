@@ -31,13 +31,15 @@ def test_health_endpoint():
 
 @pytest.mark.skipif(not API_AVAILABLE, reason="api.py absent")
 def test_predict_accepts_signal():
-    """POST /predict doit accepter un signal ECG."""
+    """POST /predict doit accepter un signal ECG et renvoyer les infos."""
     payload = {"signal": [0.1, 0.2, 0.3, 0.4, 0.5], "fs": 360}
     response = client.post("/predict", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["samples_received"] == 5
-    assert data["sampling_rate"] == 360
+    # Noms adaptés au code de Personne B
+    assert data["nb_points"] == 5
+    assert data["frequence"] == 360
+    assert data["message"] == "en attente du modele"
 
 
 @pytest.mark.skipif(not API_AVAILABLE, reason="api.py absent")
