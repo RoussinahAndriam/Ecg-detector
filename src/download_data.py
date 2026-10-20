@@ -13,7 +13,7 @@ def download_mitbih():
     files = os.listdir('data/mitbih')
     print(f"\n✅ {len(files)} fichiers téléchargés dans data/mitbih/")
     
-    # Afficher un exemple
+    
     print("\n📋 Exemple de fichiers :")
     for f in sorted(files)[:9]:
         print(f"   - {f}")
