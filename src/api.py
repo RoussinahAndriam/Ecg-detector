@@ -26,6 +26,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+try:
+    model = joblib.load("models/ecg_model.pkl")
+    print("  Modèle chargé avec succès")
+except Exception as e:
+    model = None
+    print(f" Modèle non chargé : {e}")
+
+CLASSES = {0: "Normal", 1: "Ventricular", 2: "Atrial"}
+
 
 try:
     model = joblib.load("models/ecg_model.pkl")
