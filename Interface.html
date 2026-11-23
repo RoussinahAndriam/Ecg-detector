@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>ECG Detector</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 40px auto; padding: 20px; }
+        h1 { color: #2c3e50; }
+        .upload-zone {
+            border: 2px dashed #3498db;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            background: #ecf0f1;
+            margin: 20px 0;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #2980b9; }
+        #preview { max-width: 100%; margin: 20px 0; display: none; }
+        #result { margin-top: 20px; }
+        .card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+        }
+        .error { border-left-color: #e74c3c; color: #e74c3c; }
+        .success { border-left-color: #27ae60; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>🫀 ECG Arrhythmia Detector</h1>
+    <p>Uploadez une image d'ECG pour détecter le rythme cardiaque et les arythmies.</p>
+
+    <div class="upload-zone">
+        <input type="file" id="fileInput" accept="image/*">
+        <br><br>
+        <button onclick="predictECG()">  Analyser l'ECG</button>
+    </div>
+
+    <img id="preview" alt="Aperçu de l'image">
+
+    <div id="result"></div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const result = document.getElementById('result');
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'block';
+            }
+        });
+
+        async function predictECG() {
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Veuillez sélectionner une image');
+                return;
+            }
+
+            result.innerHTML = '<p>  Analyse en cours...</p>';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('http://localhost:8000/predict/image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    result.innerHTML = `<div class="card error">  Erreur : ${data.detail || JSON.stringify(data)}</div>`;
+                    return;
+                }
+
+                const hr = data.heart_rate || {};
+                const diag = data.diagnosis || {};
+
+                result.innerHTML = `
+                    <div class="card success">
+                        <h3> Résultats</h3>
+                        <p><strong>BPM :</strong> ${hr.heart_rate_bpm || 'N/A'}</p>
+                        <p><strong>Rythme :</strong> ${hr.rhythm || 'N/A'}</p>
+                        <p><strong>Battements détectés :</strong> ${hr.num_beats_detected || 0}</p>
+                        <p><strong>Variabilité (SDNN) :</strong> ${hr.rr_variability_ms || 0} ms</p>
+                        <p><strong>Irrégulier :</strong> ${hr.irregular ? '  Oui' : ' Non'}</p>
+                    </div>
+                    <div class="card">
+                        <h3> Diagnostic</h3>
+                        <p><strong>Classe :</strong> ${diag.class || 'N/A'}</p>
+                        <p><strong>Confiance :</strong> ${(diag.confidence * 100).toFixed(1)}%</p>
+                        <p><strong>Battements analysés :</strong> ${diag.beats_analyzed || 0}</p>
+                    </div>
+                    <details>
+                        <summary>Voir le JSON complet</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="card error">  Erreur réseau : ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
